@@ -11,7 +11,7 @@ fn main() {
     let fname = args.get(1).unwrap_or(&default_path);
     let path = Path::new(&fname);
 
-    let v = read_user_from_file(path).unwrap();
+    let v = read_json_from_file(path).unwrap();
 
     let array = v.as_array().unwrap();
 
@@ -45,7 +45,7 @@ fn main() {
                     match &obj[key] {
                         Value::String(s) => s.clone(),
                         Value::Number(n) => n.to_string(),
-                        _ => "".to_string(), // Handle other types as needed
+                        _ => "".to_string(),
                     }
                 })
                 .collect();
@@ -67,8 +67,7 @@ fn main() {
     println!("{}", file_content);
 }
 
-fn read_user_from_file<P: AsRef<Path>>(path: P) -> Result<Value, Box<dyn Error>> {
-    // Open the file in read-only mode with buffer.
+fn read_json_from_file<P: AsRef<Path>>(path: P) -> Result<Value, Box<dyn Error>> {
     let file = OpenOptions::new()
         .read(true)
         .open(path)
@@ -76,9 +75,7 @@ fn read_user_from_file<P: AsRef<Path>>(path: P) -> Result<Value, Box<dyn Error>>
 
     let reader = BufReader::new(file);
 
-    // Read the JSON contents of the file as an instance of `User`.
     let v = serde_json::from_reader(reader)?;
 
-    // Return the `User`.
     Ok(v)
 }
