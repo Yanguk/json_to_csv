@@ -1,5 +1,11 @@
 use serde_json::Value;
-use std::{collections::HashSet, error::Error, fs::{OpenOptions, File}, io::{BufReader, Read}, path::Path};
+use std::{
+    collections::HashSet,
+    error::Error,
+    fs::{File, OpenOptions},
+    io::{BufReader, Read},
+    path::Path,
+};
 
 const TEST_PATH: &str = "test.json";
 
@@ -39,18 +45,15 @@ fn main() {
     array
         .iter()
         .map(|obj| {
-            let row: Vec<String> = sorted_keys
+            sorted_keys
                 .iter()
-                .map(|key| {
-                    match &obj[key] {
-                        Value::String(s) => s.clone(),
-                        Value::Number(n) => n.to_string(),
-                        _ => "".to_string(),
-                    }
+                .map(|key| match &obj.get(key) {
+                    Some(Value::String(s)) => s.clone(),
+                    Some(Value::Number(n)) => n.to_string(),
+                    None => "".to_string(),
+                    _ => panic!("unexpected type"),
                 })
-                .collect();
-
-            row
+                .collect::<Vec<String>>()
         })
         .for_each(|row| {
             wtr.write_record(&row).unwrap();
