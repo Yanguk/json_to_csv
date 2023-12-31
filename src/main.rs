@@ -7,19 +7,16 @@ use std::{
     path::Path,
 };
 
-const TEST_PATH: &str = "test.json";
-
 fn main() {
     println!("convert json to csv");
 
     let args: Vec<String> = std::env::args().collect();
-    let default_path = TEST_PATH.to_string();
-    let fname = args.get(1).unwrap_or(&default_path);
+    let fname = args.get(1).unwrap();
+
     let path = Path::new(&fname);
+    let json_value = read_json_from_file(path).unwrap();
 
-    let v = read_json_from_file(path).unwrap();
-
-    let array = v.as_array().unwrap();
+    let array = json_value.as_array().unwrap();
 
     let output_path = path.with_extension("csv");
 
