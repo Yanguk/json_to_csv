@@ -1,10 +1,9 @@
 use serde_json::Value;
 use std::{
-    collections::HashSet,
     error::Error,
     fs::{File, OpenOptions},
     io::{BufReader, Read},
-    path::Path,
+    path::Path, collections::HashSet,
 };
 
 fn main() {
@@ -31,11 +30,14 @@ fn main() {
 
     let unique_keys = array
         .iter()
-        .flat_map(|obj| obj.as_object().unwrap().iter().map(|(key, _value)| key))
+        .flat_map(|obj| obj.as_object().unwrap().iter().enumerate().map(|(idx, (key, _value))| (key, idx)))
         .collect::<HashSet<_>>();
 
-    let mut sorted_keys: Vec<_> = unique_keys.into_iter().collect();
-    sorted_keys.sort();
+    let mut sorted_keys: Vec<_> = unique_keys.iter().collect();
+
+    sorted_keys.sort_by(|a, b| a.1.cmp(&b.1));
+
+    let sorted_keys = sorted_keys.iter().map(|(key, _idx)| key).collect::<Vec<_>>();
 
     wtr.write_record(&sorted_keys).unwrap();
 
@@ -44,11 +46,18 @@ fn main() {
         .map(|obj| {
             sorted_keys
                 .iter()
-                .map(|key| match &obj.get(key) {
-                    Some(Value::String(s)) => s.clone(),
-                    Some(Value::Number(n)) => n.to_string(),
-                    None => "".to_string(),
-                    _ => panic!("unexpected type"),
+                .map(|key| {
+                    let item = &obj.get(key);
+
+                    match item {
+                        Some(Value::String(s)) => s.clone(),
+                        Some(Value::Number(n)) => n.to_string(),
+                        Some(Value::Null) => "".to_string(),
+                        None => "".to_string(),
+                        _ => {
+                            panic!("unexpected type")
+                        }
+                    }
                 })
                 .collect::<Vec<String>>()
         })
